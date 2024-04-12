@@ -1,25 +1,25 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const menu = document.querySelector('#films');
-  const details = document.querySelector('#film-details');
-  const ticketBtn = document.querySelector('#buy-ticket');
+  const filmMenu = document.querySelector('#films');
+  const filmDetails = document.querySelector('#film-details');
+  const ticketButton = document.querySelector('#buy-ticket');
 
-  // Function to fetch details of a single film
-  const fetchFilm = async (id) => {
+  // Function to get a single film
+  const getFilm = async (id) => {
     const response = await fetch(`http://localhost:3000/films/${id}`);
     const film = await response.json();
     return film;
   };
 
-  // Function to fetch details of all films
-  const fetchAllFilms = async () => {
+  // Function to get all films
+  const getAllFilms = async () => {
     const response = await fetch(`http://localhost:3000/films`);
     const films = await response.json();
     return films;
   };
 
-  // Function to purchase a ticket for a film
-  const purchaseTicket = async (id) => {
-    const film = await fetchFilm(id);
+  // Function to buy a ticket
+  const buyTicket = async (id) => {
+    const film = await getFilm(id);
     if (film.tickets_sold < film.capacity) {
       const response = await fetch(`http://localhost:3000/films/${id}`, {
         method: 'PATCH',
@@ -31,13 +31,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const updatedFilm = await response.json();
       return updatedFilm;
     } else {
-      alert('Tickets for this showing are sold out.');
+      alert('This showing is sold out.');
     }
   };
 
-  // Function to display details of a single film
-  const displayFilmDetails = (film) => {
-    details.innerHTML = `
+  // Function to display a single film
+  const displayFilm = (film) => {
+    filmDetails.innerHTML = `
       <h2>${film.title}</h2>
       <img src="${film.poster}" alt="${film.title}">
       <p>Runtime: ${film.runtime} minutes</p>
@@ -47,57 +47,57 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   };
 
-  // Function to display all films in the menu
+  // Function to display all films
   const displayAllFilms = (films) => {
-    menu.innerHTML = '';
+    filmMenu.innerHTML = '';
     films.forEach((film) => {
       const li = document.createElement('li');
       li.classList.add('film', 'item');
       li.textContent = film.title;
       li.dataset.id = film.id;
-      menu.appendChild(li);
+      filmMenu.appendChild(li);
     });
   };
 
-  // Event handler for ticket purchase
+  // Function to handle ticket purchase
   const handleTicketPurchase = (event) => {
     event.preventDefault();
     const id = event.target.dataset.id;
-    purchaseTicket(id)
+    buyTicket(id)
       .then((updatedFilm) => {
-        displayFilmDetails(updatedFilm);
+        displayFilm(updatedFilm);
       });
   };
 
-  // Event handler for film selection
+  // Function to handle film selection
   const handleFilmSelection = async (event) => {
     if (event.target.tagName === 'LI') {
       const id = event.target.dataset.id;
-      const film = await fetchFilm(id);
-      displayFilmDetails(film);
+      const film = await getFilm(id);
+      displayFilm(film);
     }
   };
 
-  // Event handler for film deletion
-  const handleFilmDeletion = async (event) => {
-    if (event.target.tagName === 'BUTTON') {
-      const id = event.target.dataset.id;
-      if (confirm('Are you sure you want to delete this film?')) {
-        await fetch(`http://localhost:3000/films/${id}`, {
-          method: 'DELETE'
-        });
-        const films = await fetchAllFilms();
-        displayAllFilms(films);
-      }
+  
+const handleFilmDeletion = async (event) => {
+  if (event.target.tagName === 'BUTTON') {
+    const id = event.target.dataset.id;
+    if (confirm('Are you sure you want to delete this film?')) {
+      await fetch(`http://localhost:3000/films/${id}`, {
+        method: 'DELETE'
+      });
+      const films = await getAllFilms();
+      displayAllFilms(films);
     }
-  };
+  }
+};
 
-  // Event listeners setup
-  menu.addEventListener('click', handleFilmSelection);
-  ticketBtn.addEventListener('click', handleTicketPurchase);
-  menu.addEventListener('click', handleFilmDeletion);
+  // Event listeners
+  filmMenu.addEventListener('click', handleFilmSelection);
+  ticketButton.addEventListener('click', handleTicketPurchase);
+  filmMenu.addEventListener('click', handleFilmDeletion);
 
-  // Initial data fetching and display
-  fetchAllFilms().then(displayAllFilms);
-  fetchFilm(1).then(displayFilmDetails);
+  // Initial display
+  getAllFilms().then(displayAllFilms);
+  getFilm(1).then(displayFilm);
 });
